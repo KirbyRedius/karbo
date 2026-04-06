@@ -16,6 +16,24 @@ class BotInfo:
 
 
 @dataclass(frozen=True, slots=True)
+class AvatarFrame:
+    """Selected avatar frame."""
+
+    frame_id: Optional[str] = None
+    file: Optional[str] = None
+
+
+@dataclass(frozen=True, slots=True)
+class MessageReaction:
+    """Aggregated reaction entry for a message."""
+
+    reaction: str
+    is_sticker: bool = False
+    count: int = 0
+    me: bool = False
+
+
+@dataclass(frozen=True, slots=True)
 class User:
     """Public user profile."""
 
@@ -24,6 +42,13 @@ class User:
     avatar: str
     short_info: str = ""
     role: int = 0
+    app_role: int = 0
+    panel_color: Optional[str] = None
+    level: int = 0
+    nickname_color: Optional[str] = None
+    nickname_emoji: Optional[str] = None
+    avatar_frame: Optional[AvatarFrame] = None
+    bubble_id: Optional[str] = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -34,6 +59,13 @@ class Member:
     nickname: str
     avatar: str
     role: int = 0
+    app_role: int = 0
+    panel_color: Optional[str] = None
+    level: int = 0
+    nickname_color: Optional[str] = None
+    nickname_emoji: Optional[str] = None
+    avatar_frame: Optional[AvatarFrame] = None
+    member_status: str = "joined"
 
 
 @dataclass(frozen=True, slots=True)
@@ -43,6 +75,13 @@ class Author:
     user_id: str
     nickname: str
     avatar: str = ""
+    role: int = 0
+    app_role: int = 0
+    panel_color: Optional[str] = None
+    level: int = 0
+    nickname_color: Optional[str] = None
+    nickname_emoji: Optional[str] = None
+    avatar_frame: Optional[AvatarFrame] = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -72,6 +111,9 @@ class Message:
     audio: Optional[str] = None
     sticker: Optional[str] = None
     images: list[str] = field(default_factory=list)
+    bubble_id: Optional[str] = None
+    bubble_version: int = 0
+    reactions: list[MessageReaction] = field(default_factory=list)
 
 
 @dataclass(frozen=True, slots=True)

@@ -10,16 +10,18 @@ from .errors import (
     RateLimitError,
     ValidationError,
 )
-from .models import Author, BotInfo, Member, Message, SentMessage, User
+from .models import AvatarFrame, Author, BotInfo, Member, Message, MessageReaction, SentMessage, User
 from .ws import KarboBotWS
 
 __all__ = [
     "KarboBot",
     "KarboBotWS",
+    "AvatarFrame",
     "Author",
     "BotInfo",
     "Member",
     "Message",
+    "MessageReaction",
     "SentMessage",
     "User",
     "KarboError",

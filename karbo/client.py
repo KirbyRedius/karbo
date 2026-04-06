@@ -14,9 +14,50 @@ from .errors import (
     RateLimitError,
     ValidationError,
 )
-from .models import Author, BotInfo, Member, Message, SentMessage, User
+from .models import AvatarFrame, Author, BotInfo, Member, Message, MessageReaction, SentMessage, User
 
 _DEFAULT_BASE_URL = "https://api.karboai.com"
+
+
+def _parse_avatar_frame(data: dict | None) -> AvatarFrame | None:
+    if not isinstance(data, dict):
+        return None
+    return AvatarFrame(
+        frame_id=data.get("frame_id"),
+        file=data.get("file"),
+    )
+
+
+def _parse_author(data: dict | None) -> Author | None:
+    if not isinstance(data, dict):
+        return None
+    return Author(
+        user_id=data.get("user_id", ""),
+        nickname=data.get("nickname", "User"),
+        avatar=data.get("avatar", data.get("avatar_url", "")) or "",
+        role=int(data.get("role", 0) or 0),
+        app_role=int(data.get("app_role", 0) or 0),
+        panel_color=data.get("panel_color"),
+        level=int(data.get("level", 0) or 0),
+        nickname_color=data.get("nickname_color"),
+        nickname_emoji=data.get("nickname_emoji"),
+        avatar_frame=_parse_avatar_frame(data.get("avatar_frame")),
+    )
+
+
+def _parse_reactions(items: list[dict] | None) -> list[MessageReaction]:
+    if not items:
+        return []
+    return [
+        MessageReaction(
+            reaction=item.get("reaction", ""),
+            is_sticker=bool(item.get("is_sticker", False)),
+            count=int(item.get("count", 0) or 0),
+            me=bool(item.get("me", False)),
+        )
+        for item in items
+        if isinstance(item, dict)
+    ]
 
 
 class KarboBot:
@@ -175,14 +216,7 @@ class KarboBot:
     async def get_message(self, chat_id: str, message_id: str) -> Message:
         """Get a specific message from a chat."""
         data = await self._request("GET", f"/bot/chat/{chat_id}/message/{message_id}")
-        author = None
-        if "author" in data:
-            a = data["author"]
-            author = Author(
-                user_id=a["user_id"],
-                nickname=a["nickname"],
-                avatar=a.get("avatar", ""),
-            )
+        author = _parse_author(data.get("author"))
         return Message(
             message_id=data["message_id"],
             chat_id=data["chat_id"],
@@ -195,6 +229,9 @@ class KarboBot:
             audio=data.get("audio"),
             sticker=data.get("sticker"),
             images=data.get("images", []),
+            bubble_id=data.get("bubble_id"),
+            bubble_version=int(data.get("bubble_version", 0) or 0),
+            reactions=_parse_reactions(data.get("reactions")),
         )
 
     # ── Chat members ─────────────────────────────────────────────────────
@@ -216,8 +253,15 @@ class KarboBot:
             Member(
                 user_id=m["user_id"],
                 nickname=m["nickname"],
-                avatar=m["avatar"],
+                avatar=m.get("avatar", m.get("avatar_url", "")),
                 role=m.get("role", 0),
+                app_role=m.get("app_role", 0),
+                panel_color=m.get("panel_color"),
+                level=m.get("level", 0),
+                nickname_color=m.get("nickname_color"),
+                nickname_emoji=m.get("nickname_emoji"),
+                avatar_frame=_parse_avatar_frame(m.get("avatar_frame")),
+                member_status=m.get("member_status", "joined"),
             )
             for m in data["items"]
         ]
@@ -230,9 +274,16 @@ class KarboBot:
         return User(
             user_id=data["user_id"],
             nickname=data["nickname"],
-            avatar=data["avatar"],
+            avatar=data.get("avatar", data.get("avatar_url", "")),
             short_info=data.get("short_info", ""),
             role=data.get("role", 0),
+            app_role=data.get("app_role", 0),
+            panel_color=data.get("panel_color"),
+            level=data.get("level", 0),
+            nickname_color=data.get("nickname_color"),
+            nickname_emoji=data.get("nickname_emoji"),
+            avatar_frame=_parse_avatar_frame(data.get("avatar_frame")),
+            bubble_id=data.get("bubble_id"),
         )
 
     # ── Chat actions ─────────────────────────────────────────────────────

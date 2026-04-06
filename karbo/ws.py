@@ -7,7 +7,7 @@ from typing import Any, Awaitable, Callable, Optional
 
 import socketio
 
-from .models import Author, Message
+from .models import AvatarFrame, Author, Message, MessageReaction
 
 logger = logging.getLogger("karbo.ws")
 
@@ -151,11 +151,34 @@ def _parse_message(data: dict) -> Message:
     author = None
     if "author" in data and isinstance(data["author"], dict):
         a = data["author"]
+        avatar_frame = None
+        if isinstance(a.get("avatar_frame"), dict):
+            avatar_frame = AvatarFrame(
+                frame_id=a["avatar_frame"].get("frame_id"),
+                file=a["avatar_frame"].get("file"),
+            )
         author = Author(
             user_id=a.get("user_id", ""),
             nickname=a.get("nickname", "User"),
-            avatar=a.get("avatar", ""),
+            avatar=a.get("avatar", a.get("avatar_url", "")),
+            role=int(a.get("role", 0) or 0),
+            app_role=int(a.get("app_role", 0) or 0),
+            panel_color=a.get("panel_color"),
+            level=int(a.get("level", 0) or 0),
+            nickname_color=a.get("nickname_color"),
+            nickname_emoji=a.get("nickname_emoji"),
+            avatar_frame=avatar_frame,
         )
+    reactions = [
+        MessageReaction(
+            reaction=item.get("reaction", ""),
+            is_sticker=bool(item.get("is_sticker", False)),
+            count=int(item.get("count", 0) or 0),
+            me=bool(item.get("me", False)),
+        )
+        for item in data.get("reactions", [])
+        if isinstance(item, dict)
+    ]
     return Message(
         message_id=data.get("message_id", ""),
         chat_id=data.get("chat_id", ""),
@@ -168,4 +191,7 @@ def _parse_message(data: dict) -> Message:
         audio=data.get("audio"),
         sticker=data.get("sticker"),
         images=data.get("images", []),
+        bubble_id=data.get("bubble_id"),
+        bubble_version=int(data.get("bubble_version", 0) or 0),
+        reactions=reactions,
     )
