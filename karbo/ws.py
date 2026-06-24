@@ -168,6 +168,7 @@ def _parse_message(data: dict) -> Message:
             nickname_color=a.get("nickname_color"),
             nickname_emoji=a.get("nickname_emoji"),
             avatar_frame=avatar_frame,
+            is_api_bot=bool(a.get("is_api_bot", False)),
         )
     reactions = [
         MessageReaction(
@@ -179,6 +180,9 @@ def _parse_message(data: dict) -> Message:
         for item in data.get("reactions", [])
         if isinstance(item, dict)
     ]
+    def _opt_int(val):
+        return int(val) if val is not None else None
+
     return Message(
         message_id=data.get("message_id", ""),
         chat_id=data.get("chat_id", ""),
@@ -186,11 +190,17 @@ def _parse_message(data: dict) -> Message:
         content=data.get("content", ""),
         created_time=data.get("created_time", 0),
         type=data.get("type", 0),
+        community_id=int(data.get("community_id", 0) or 0),
         reply_message_id=data.get("reply_message_id"),
         author=author,
         audio=data.get("audio"),
+        audio_duration_ms=_opt_int(data.get("audio_duration_ms")),
+        waveform=data.get("waveform"),
+        video_note=data.get("video_note"),
+        video_note_duration_ms=_opt_int(data.get("video_note_duration_ms")),
         sticker=data.get("sticker"),
         images=data.get("images", []),
+        transparent=bool(data.get("transparent", False)),
         bubble_id=data.get("bubble_id"),
         bubble_version=int(data.get("bubble_version", 0) or 0),
         reactions=reactions,

@@ -48,6 +48,7 @@ Async HTTP client. Use as a context manager or call `.close()` when done.
 | `get_message(chat_id, message_id)` | Get a specific message (`Message`) |
 | `get_chat_members(chat_id, *, limit=100, offset=0)` | List chat members (`list[Member]`) |
 | `get_user(user_id)` | Get user profile (`User`) |
+| `get_user_in_community(user_id, community_id)` | Get user profile in a community (`User`) |
 | `leave_chat(chat_id)` | Leave a chat |
 | `kick_user(chat_id, user_id)` | Kick a user (requires helper role) |
 
@@ -89,9 +90,11 @@ await ws.run_forever()
 - **`BotInfo`** — `bot_id`, `name`, `status`
 - **`Message`** — `message_id`, `chat_id`, `user_id`, `content`, `created_time`, `type`, `reply_message_id`, `author`, `images`
 - **`SentMessage`** — `message_id`, `created_time`
-- **`User`** — `user_id`, `nickname`, `avatar`, `short_info`, `role`
-- **`Member`** — `user_id`, `nickname`, `avatar`, `role`
-- **`Author`** — `user_id`, `nickname`, `avatar`
+- **`User`** — `user_id`, `nickname`, `avatar`, `short_info`, `role`, `app_role`, `panel_color`, `level`, `nickname_color`, `nickname_emoji`, `avatar_frame`, `bubble_id`
+- **`Member`** — `user_id`, `nickname`, `avatar`, `role`, `app_role`, `panel_color`, `level`, `nickname_color`, `nickname_emoji`, `avatar_frame`, `member_status`, `is_api_bot`
+- **`Author`** — `user_id`, `nickname`, `avatar`, `role`, `app_role`, `panel_color`, `level`, `nickname_color`, `nickname_emoji`, `avatar_frame`
+- **`AvatarFrame`** — `frame_id`, `file`
+- **`MessageReaction`** — `reaction`, `is_sticker`, `count`, `me`
 
 ### Exceptions
 

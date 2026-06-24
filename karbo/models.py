@@ -66,6 +66,7 @@ class Member:
     nickname_emoji: Optional[str] = None
     avatar_frame: Optional[AvatarFrame] = None
     member_status: str = "joined"
+    is_api_bot: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -82,6 +83,7 @@ class Author:
     nickname_color: Optional[str] = None
     nickname_emoji: Optional[str] = None
     avatar_frame: Optional[AvatarFrame] = None
+    is_api_bot: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -106,11 +108,17 @@ class Message:
     content: str
     created_time: int
     type: int
+    community_id: int = 0
     reply_message_id: Optional[str] = None
     author: Optional[Author] = None
     audio: Optional[str] = None
+    audio_duration_ms: Optional[int] = None
+    waveform: Optional[list[float]] = None
+    video_note: Optional[str] = None
+    video_note_duration_ms: Optional[int] = None
     sticker: Optional[str] = None
     images: list[str] = field(default_factory=list)
+    transparent: bool = False
     bubble_id: Optional[str] = None
     bubble_version: int = 0
     reactions: list[MessageReaction] = field(default_factory=list)

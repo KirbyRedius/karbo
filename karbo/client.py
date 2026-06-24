@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Any, Optional
 
 import aiohttp
 
@@ -17,6 +17,12 @@ from .errors import (
 from .models import AvatarFrame, Author, BotInfo, Member, Message, MessageReaction, SentMessage, User
 
 _DEFAULT_BASE_URL = "https://api.karboai.com"
+
+
+def _opt_int(val: Any) -> int | None:
+    if val is None:
+        return None
+    return int(val)
 
 
 def _parse_avatar_frame(data: dict | None) -> AvatarFrame | None:
@@ -42,6 +48,7 @@ def _parse_author(data: dict | None) -> Author | None:
         nickname_color=data.get("nickname_color"),
         nickname_emoji=data.get("nickname_emoji"),
         avatar_frame=_parse_avatar_frame(data.get("avatar_frame")),
+        is_api_bot=bool(data.get("is_api_bot", False)),
     )
 
 
@@ -224,11 +231,17 @@ class KarboBot:
             content=data["content"],
             created_time=data["created_time"],
             type=data["type"],
+            community_id=int(data.get("community_id", 0) or 0),
             reply_message_id=data.get("reply_message_id"),
             author=author,
             audio=data.get("audio"),
+            audio_duration_ms=_opt_int(data.get("audio_duration_ms")),
+            waveform=data.get("waveform"),
+            video_note=data.get("video_note"),
+            video_note_duration_ms=_opt_int(data.get("video_note_duration_ms")),
             sticker=data.get("sticker"),
             images=data.get("images", []),
+            transparent=bool(data.get("transparent", False)),
             bubble_id=data.get("bubble_id"),
             bubble_version=int(data.get("bubble_version", 0) or 0),
             reactions=_parse_reactions(data.get("reactions")),
@@ -242,12 +255,24 @@ class KarboBot:
         *,
         limit: int = 100,
         offset: int = 0,
+        community_id: Optional[int] = None,
     ) -> list[Member]:
-        """List members of a chat the bot is in."""
+        """List members of a chat the bot is in.
+
+        Parameters
+        ----------
+        community_id:
+            Optional community ID. When provided, member profiles
+            (nickname, avatar, role, level) are resolved from that
+            community instead of the global profile.
+        """
+        params: dict[str, Any] = {"limit": limit, "offset": offset}
+        if community_id is not None:
+            params["community_id"] = community_id
         data = await self._request(
             "GET",
             f"/bot/chat/{chat_id}/members",
-            params={"limit": limit, "offset": offset},
+            params=params,
         )
         return [
             Member(
@@ -262,6 +287,7 @@ class KarboBot:
                 nickname_emoji=m.get("nickname_emoji"),
                 avatar_frame=_parse_avatar_frame(m.get("avatar_frame")),
                 member_status=m.get("member_status", "joined"),
+                is_api_bot=bool(m.get("is_api_bot", False)),
             )
             for m in data["items"]
         ]
@@ -271,6 +297,24 @@ class KarboBot:
     async def get_user(self, user_id: str) -> User:
         """Get a user's public profile."""
         data = await self._request("GET", f"/bot/user/{user_id}")
+        return User(
+            user_id=data["user_id"],
+            nickname=data["nickname"],
+            avatar=data.get("avatar", data.get("avatar_url", "")),
+            short_info=data.get("short_info", ""),
+            role=data.get("role", 0),
+            app_role=data.get("app_role", 0),
+            panel_color=data.get("panel_color"),
+            level=data.get("level", 0),
+            nickname_color=data.get("nickname_color"),
+            nickname_emoji=data.get("nickname_emoji"),
+            avatar_frame=_parse_avatar_frame(data.get("avatar_frame")),
+            bubble_id=data.get("bubble_id"),
+        )
+
+    async def get_user_in_community(self, user_id: str, community_id: int) -> User:
+        """Get a user's profile within a specific community."""
+        data = await self._request("GET", f"/bot/user/{user_id}/community/{community_id}")
         return User(
             user_id=data["user_id"],
             nickname=data["nickname"],
