@@ -14,6 +14,7 @@ from .errors import (
     RateLimitError,
     ValidationError,
 )
+from .buttons import Button, Row, buttons_to_dict
 from .models import AvatarFrame, Author, BotInfo, Member, Message, MessageReaction, SentMessage, User
 
 _DEFAULT_BASE_URL = "https://api.karboai.com"
@@ -161,6 +162,7 @@ class KarboBot:
         *,
         reply_to: Optional[str] = None,
         images: Optional[list[str]] = None,
+        buttons: Optional[list[Row]] = None,
     ) -> SentMessage:
         """Send a message to a chat.
 
@@ -174,12 +176,20 @@ class KarboBot:
             Optional ``message_id`` to reply to.
         images:
             Optional list of image URLs (from :meth:`upload_image`).
+        buttons:
+            Optional list of rows of inline buttons. Each row is a list
+            of :class:`karbo.Button` objects (or raw ``dict``s for
+            advanced use). A single :class:`karbo.Button` instead of a
+            list is treated as a one-button row. See ``karbo/buttons.py``
+            for available styles, animations, and particle effects.
         """
         payload: dict = {"chat_id": chat_id, "content": content}
         if reply_to is not None:
             payload["reply_message_id"] = reply_to
         if images:
             payload["images"] = images
+        if buttons:
+            payload["inline_buttons"] = buttons_to_dict(buttons)
         data = await self._request("POST", "/bot/send-message", json=payload)
         return SentMessage(
             message_id=data["message_id"],

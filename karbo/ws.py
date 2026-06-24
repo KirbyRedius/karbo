@@ -7,6 +7,7 @@ from typing import Any, Awaitable, Callable, Optional
 
 import socketio
 
+from .buttons import ButtonPress
 from .models import AvatarFrame, Author, Message, MessageReaction
 
 logger = logging.getLogger("karbo.ws")
@@ -46,6 +47,7 @@ class KarboBotWS:
         )
 
         self._on_message: Optional[Callable[[Message], Awaitable[None]]] = None
+        self._on_button_pressed: Optional[Callable[[ButtonPress], Awaitable[None]]] = None
         self._on_connect: Optional[Callable[[], Awaitable[None]]] = None
         self._on_disconnect: Optional[Callable[[], Awaitable[None]]] = None
         self._on_raw: dict[str, list[EventHandler]] = {}
@@ -73,6 +75,21 @@ class KarboBotWS:
             for handler in self._on_raw.get("new_message", []):
                 await handler(data)
 
+        @self._sio.on("button_pressed")
+        async def on_button_pressed(data: dict):
+            press = ButtonPress(
+                chat_id=data.get("chat_id", ""),
+                message_id=data.get("message_id", ""),
+                button_id=data.get("button_id", ""),
+                user_id=data.get("user_id", ""),
+                community_id=int(data.get("community_id", 0) or 0),
+                interaction=data.get("interaction", "tap"),
+            )
+            if self._on_button_pressed:
+                await self._on_button_pressed(press)
+            for handler in self._on_raw.get("button_pressed", []):
+                await handler(data)
+
     # ── decorator API ────────────────────────────────────────────────────
 
     def on_message(
@@ -87,6 +104,21 @@ class KarboBotWS:
                 print(message.content)
         """
         self._on_message = func
+        return func
+
+    def on_button_pressed(
+        self, func: Callable[[ButtonPress], Awaitable[None]],
+    ) -> Callable[[ButtonPress], Awaitable[None]]:
+        """Register a handler called when a user presses an inline button.
+
+        Usage::
+
+            @ws.on_button_pressed
+            async def handle(press: karbo.ButtonPress):
+                if press.button_id == "pay":
+                    await bot.send_message(press.chat_id, "Paid!")
+        """
+        self._on_button_pressed = func
         return func
 
     def on_connect(

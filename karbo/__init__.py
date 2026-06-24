@@ -1,5 +1,26 @@
 """Karbo — Official Python SDK for KarboAI Bot API."""
 
+from .buttons import (
+    Button,
+    ButtonPress,
+    ButtonStyle,
+    ConfettiParticles,
+    Glitch,
+    Gradient,
+    HeartParticles,
+    Laser,
+    LongPress,
+    Neon,
+    Outline,
+    Particles,
+    PixelParticles,
+    Pulse,
+    SmokeParticles,
+    SparkParticles,
+    SwipeInteraction,
+    TapInteraction,
+    buttons_to_dict,
+)
 from .client import KarboBot
 from .errors import (
     APIError,
@@ -10,12 +31,22 @@ from .errors import (
     RateLimitError,
     ValidationError,
 )
-from .models import AvatarFrame, Author, BotInfo, Member, Message, MessageReaction, SentMessage, User
+from .models import (
+    AvatarFrame,
+    Author,
+    BotInfo,
+    Member,
+    Message,
+    MessageReaction,
+    SentMessage,
+    User,
+)
 from .ws import KarboBotWS
 
 __all__ = [
     "KarboBot",
     "KarboBotWS",
+    # Models
     "AvatarFrame",
     "Author",
     "BotInfo",
@@ -24,6 +55,27 @@ __all__ = [
     "MessageReaction",
     "SentMessage",
     "User",
+    # Buttons API
+    "Button",
+    "ButtonPress",
+    "ButtonStyle",
+    "Gradient",
+    "TapInteraction",
+    "SwipeInteraction",
+    "LongPress",
+    "Pulse",
+    "Neon",
+    "Laser",
+    "Glitch",
+    "Outline",
+    "Particles",
+    "SparkParticles",
+    "ConfettiParticles",
+    "HeartParticles",
+    "PixelParticles",
+    "SmokeParticles",
+    "buttons_to_dict",
+    # Errors
     "KarboError",
     "AuthenticationError",
     "ForbiddenError",
@@ -33,4 +85,4 @@ __all__ = [
     "APIError",
 ]
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
