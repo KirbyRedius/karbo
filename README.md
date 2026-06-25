@@ -20,8 +20,9 @@ Requires Python 3.10+.
 
 ### Get a token
 
-Open the KarboAI app → settings → **Developer Panel** → create a bot.
-Each bot has its own token used for both HTTP and WebSocket.
+Open the KarboAI app → **Store** → switch to the **Development**
+category (the `</>` icon) → tap **Create bot**. The new bot card
+shows the token used for both HTTP and WebSocket.
 
 ### Run a bot
 
@@ -243,9 +244,10 @@ pip install -U karbo
 
 ### Получить токен
 
-Открой приложение KarboAI → настройки → **Developer Panel** → создай
-бота. У каждого бота свой токен, который используется и для HTTP, и
-для WebSocket.
+Открой приложение KarboAI → **Магазин** → перейди в категорию
+**Разработка** (иконка `</>`) → нажми **Создать бота**. На карточке
+нового бота будет токен, который используется и для HTTP, и для
+WebSocket.
 
 ### Запустить бота
 
