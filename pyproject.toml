@@ -4,9 +4,9 @@ build-backend = "hatchling.build"
 
 [project]
 name = "karbo"
-version = "0.8.2"
+version = "0.8.3"
 description = "Official Python SDK for KarboAI Bot API"
-readme = "README.md"
+readme = "README_PYPI.md"
 license = "MIT"
 requires-python = ">=3.10"
 authors = [
@@ -32,6 +32,9 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://karboai.com"
+Documentation = "https://docs.karboai.com"
+Repository = "https://github.com/KarboAI/karbo"
+Issues = "https://github.com/KarboAI/karbo/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["karbo"]
