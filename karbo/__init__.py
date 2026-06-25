@@ -8,8 +8,6 @@ from .buttons import (
     Glitch,
     Gradient,
     HeartParticles,
-    Laser,
-    LongPress,
     Neon,
     Outline,
     Particles,
@@ -62,10 +60,8 @@ __all__ = [
     "Gradient",
     "TapInteraction",
     "SwipeInteraction",
-    "LongPress",
     "Pulse",
     "Neon",
-    "Laser",
     "Glitch",
     "Outline",
     "Particles",
@@ -85,4 +81,4 @@ __all__ = [
     "APIError",
 ]
 
-__version__ = "0.5.0"
+__version__ = "0.8.0"

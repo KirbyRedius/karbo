@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "karbo"
-version = "0.5.0"
+version = "0.8.0"
 description = "Official Python SDK for KarboAI Bot API"
 readme = "README.md"
 license = "MIT"

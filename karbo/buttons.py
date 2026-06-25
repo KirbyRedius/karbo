@@ -49,10 +49,8 @@ __all__ = [
     "Gradient",
     "TapInteraction",
     "SwipeInteraction",
-    "LongPress",
     "Pulse",
     "Neon",
-    "Laser",
     "Glitch",
     "Outline",
     "Particles",
@@ -135,21 +133,6 @@ class SwipeInteraction:
 Interaction = Union[TapInteraction, SwipeInteraction]
 
 
-@dataclass(frozen=True, slots=True)
-class LongPress:
-    """Adds a separate long-press action with its own label.
-
-    The label is shown in tooltips / accessibility output; the press
-    event arrives with ``interaction='long_press'`` so the bot can
-    branch on it.
-    """
-
-    label: str
-
-    def _to_dict(self) -> dict:
-        return {"label": self.label}
-
-
 # ── Animations ──────────────────────────────────────────────────────
 
 
@@ -175,21 +158,6 @@ class Neon(_Animation):
 
     def _to_dict(self) -> dict:
         return {"kind": "neon", "color_hex": self.color, "blur": self.blur}
-
-
-@dataclass(frozen=True, slots=True)
-class Laser(_Animation):
-    color: str = "#FFFFFF"
-    dot_size_px: int = 6
-    speed_ms: int = 1800
-
-    def _to_dict(self) -> dict:
-        return {
-            "kind": "laser",
-            "color_hex": self.color,
-            "dot_size_px": self.dot_size_px,
-            "speed_ms": self.speed_ms,
-        }
 
 
 @dataclass(frozen=True, slots=True)
@@ -278,7 +246,6 @@ class Button:
     label: str
     style: ButtonStyle = field(default_factory=ButtonStyle)
     interaction: Interaction = field(default_factory=TapInteraction)
-    long_press: Optional[LongPress] = None
     animations: Sequence[_Animation] = ()
     particles: Optional[Particles] = None
 
@@ -289,7 +256,6 @@ class Button:
             "label": self.label,
             **style,
             "interaction": self.interaction._to_dict(),
-            "long_press": self.long_press._to_dict() if self.long_press else None,
             "animations": [a._to_dict() for a in self.animations],
             "particles": self.particles._to_dict() if self.particles else None,
         }
@@ -342,9 +308,9 @@ def buttons_to_dict(rows: Sequence[Row]) -> List[List[dict]]:
 class ButtonPress:
     """Delivered to the bot's WS handler when a user presses a button.
 
-    `interaction` is one of ``'tap'``, ``'swipe'``, ``'long_press'`` —
-    same as the server's echoed type. A single handler can branch on
-    it instead of registering separate callbacks per interaction.
+    `interaction` is one of ``'tap'`` or ``'swipe'`` — same as the
+    server's echoed type. A single handler can branch on it instead
+    of registering separate callbacks per interaction.
     """
 
     chat_id: str

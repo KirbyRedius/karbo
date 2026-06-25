@@ -111,9 +111,6 @@ Add a `Gradient(start, end, direction)` for a two-stop fill.
 * `TapInteraction()` (default) — single tap fires the press event.
 * `SwipeInteraction(text, fill_color)` — drag left-to-right to confirm.
   The button fills with `fill_color` and shows `text` mid-swipe.
-* `LongPress(label)` — add a separate long-press action with its own
-  label. Tap and long-press both call `on_button_pressed`; the
-  `interaction` field tells you which one fired.
 
 ##### Animations
 
@@ -121,7 +118,6 @@ Up to 4 animations per button, no duplicates of the same kind:
 
 * `Pulse(speed_ms)` — soft scale up-down.
 * `Neon(color, blur)` — coloured glow around the button.
-* `Laser(color, dot_size_px, speed_ms)` — a glowing dot runs the perimeter.
 * `Glitch(intensity_px, frequency_ms)` — periodic RGB-shift jitter.
 * `Outline(color, thickness_px, corner_radius)` — static border.
 
