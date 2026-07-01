@@ -85,6 +85,83 @@ urls = [await bot.upload_image(p) for p in ["a.png", "b.png", "c.png"]]
 await bot.send_message(chat_id, "Album", images=urls)
 ```
 
+### React when a user opens a DM with your bot
+
+The moment a user first opens a personal chat with your bot (via
+"Message bot" in the app), the bot receives a `new_message` with
+`type == karbo.CREATE_CHAT_MESSAGE` and `chat_type == karbo.CHAT_TYPE_PM`.
+The `content` is empty — it's a marker, not human-readable text.
+Use it to greet the user or run onboarding.
+
+Same pattern for group chats: when an organizer adds your bot to a
+chat, you receive `type == karbo.INVITED_BOT_TO_CHAT`.
+
+```python
+@ws.on_message
+async def on_message(message: karbo.Message):
+    if message.type == karbo.CREATE_CHAT_MESSAGE:
+        # User just opened a DM with us for the first time
+        await bot.send_message(
+            message.chat_id,
+            "👋 Hi! I'm a bot. Type /help to see what I can do.",
+        )
+        return
+
+    if message.type == karbo.INVITED_BOT_TO_CHAT:
+        # Someone added us to a group chat
+        await bot.send_message(
+            message.chat_id,
+            "Thanks for adding me! Type /help.",
+        )
+        return
+
+    if message.type != karbo.NORMAL_MESSAGE:
+        return  # ignore other system events
+    if message.user_id == me.bot_id:
+        return  # ignore our own echoes
+    # ... your normal handler ...
+```
+
+### Know which kind of chat you're in
+
+Every WebSocket event carries `chat_type`, so you don't need an extra
+API call just to distinguish a DM from a group chat:
+
+```python
+@ws.on_message
+async def on_message(message: karbo.Message):
+    if message.chat_type == karbo.CHAT_TYPE_PM:
+        # 1-on-1 DM
+        ...
+    elif message.chat_type == karbo.CHAT_TYPE_PUBLIC:
+        # Public group chat in a community
+        ...
+    elif message.chat_type == karbo.CHAT_TYPE_PRIVATE:
+        # Private group chat
+        ...
+```
+
+### Full chat metadata
+
+Need the chat's title, background, community, participant count, or
+its last-message preview? Ask for the whole thing:
+
+```python
+chat = await bot.get_chat(chat_id)
+print(chat.type, chat.title, chat.users_count, chat.community_id)
+print(chat.pinned_message)
+if chat.last_message:
+    print(f"Last: {chat.last_message.content}")
+if chat.type == karbo.CHAT_TYPE_PM:
+    print(f"Talking to {chat.other_user_nickname} ({chat.other_user_id})")
+
+# Anything the SDK hasn't projected yet lives on chat.raw:
+print(chat.raw.get("some_new_field"))
+```
+
+Requires the bot to be a member of the chat; otherwise raises
+`ForbiddenError`.
+
 ### Inline buttons
 
 Attach interactive buttons under any message. The structure is
@@ -309,6 +386,83 @@ await bot.send_message(chat_id, "Зацени!", images=[url])
 urls = [await bot.upload_image(p) for p in ["a.png", "b.png", "c.png"]]
 await bot.send_message(chat_id, "Альбом", images=urls)
 ```
+
+### Реакция на открытие DM с ботом
+
+Как только пользователь впервые открывает личный чат с ботом
+(«Написать боту» в приложении), бот получает `new_message` с
+`type == karbo.CREATE_CHAT_MESSAGE` и
+`chat_type == karbo.CHAT_TYPE_PM`. Поле `content` пустое — это
+маркер, а не текст. Используй событие для приветственного сообщения
+и онбординга.
+
+Аналогично для групповых чатов: когда организатор добавляет бота в
+чат, приходит `type == karbo.INVITED_BOT_TO_CHAT`.
+
+```python
+@ws.on_message
+async def on_message(message: karbo.Message):
+    if message.type == karbo.CREATE_CHAT_MESSAGE:
+        # Юзер только что открыл DM с нами
+        await bot.send_message(
+            message.chat_id,
+            "👋 Привет! Я бот. Напиши /help чтобы узнать что я умею.",
+        )
+        return
+
+    if message.type == karbo.INVITED_BOT_TO_CHAT:
+        # Нас добавили в групповой чат
+        await bot.send_message(
+            message.chat_id,
+            "Спасибо, что добавили! Пиши /help.",
+        )
+        return
+
+    if message.type != karbo.NORMAL_MESSAGE:
+        return  # остальные системные события пропускаем
+    if message.user_id == me.bot_id:
+        return  # свои же сообщения игнорируем
+    # ... основная логика ...
+```
+
+### Понять, в каком чате пришло событие
+
+В каждом WebSocket-событии есть `chat_type`, отдельный запрос ради
+этого делать не нужно:
+
+```python
+@ws.on_message
+async def on_message(message: karbo.Message):
+    if message.chat_type == karbo.CHAT_TYPE_PM:
+        # Личка (юзер-бот)
+        ...
+    elif message.chat_type == karbo.CHAT_TYPE_PUBLIC:
+        # Публичный чат в сообществе
+        ...
+    elif message.chat_type == karbo.CHAT_TYPE_PRIVATE:
+        # Приватный групповой чат
+        ...
+```
+
+### Полная информация о чате
+
+Нужны заголовок, фон, сообщество, число участников или последнее
+сообщение? Забирай целиком:
+
+```python
+chat = await bot.get_chat(chat_id)
+print(chat.type, chat.title, chat.users_count, chat.community_id)
+print(chat.pinned_message)
+if chat.last_message:
+    print(f"Последнее: {chat.last_message.content}")
+if chat.type == karbo.CHAT_TYPE_PM:
+    print(f"Пишем {chat.other_user_nickname} ({chat.other_user_id})")
+
+# Всё, что SDK ещё не разложил по полям, доступно в chat.raw:
+print(chat.raw.get("some_new_field"))
+```
+
+Бот должен состоять в чате, иначе будет `ForbiddenError`.
 
 ### Inline-кнопки
 

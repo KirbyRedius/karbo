@@ -77,6 +77,7 @@ class KarboBotWS:
 
         @self._sio.on("button_pressed")
         async def on_button_pressed(data: dict):
+            ct = data.get("chat_type")
             press = ButtonPress(
                 chat_id=data.get("chat_id", ""),
                 message_id=data.get("message_id", ""),
@@ -84,6 +85,7 @@ class KarboBotWS:
                 user_id=data.get("user_id", ""),
                 community_id=int(data.get("community_id", 0) or 0),
                 interaction=data.get("interaction", "tap"),
+                chat_type=int(ct) if ct is not None else None,
             )
             if self._on_button_pressed:
                 await self._on_button_pressed(press)
@@ -215,6 +217,7 @@ def _parse_message(data: dict) -> Message:
     def _opt_int(val):
         return int(val) if val is not None else None
 
+    chat_type_raw = data.get("chat_type")
     return Message(
         message_id=data.get("message_id", ""),
         chat_id=data.get("chat_id", ""),
@@ -223,6 +226,7 @@ def _parse_message(data: dict) -> Message:
         created_time=data.get("created_time", 0),
         type=data.get("type", 0),
         community_id=int(data.get("community_id", 0) or 0),
+        chat_type=int(chat_type_raw) if chat_type_raw is not None else None,
         reply_message_id=data.get("reply_message_id"),
         author=author,
         audio=data.get("audio"),

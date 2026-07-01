@@ -308,9 +308,13 @@ def buttons_to_dict(rows: Sequence[Row]) -> List[List[dict]]:
 class ButtonPress:
     """Delivered to the bot's WS handler when a user presses a button.
 
-    `interaction` is one of ``'tap'`` or ``'swipe'`` — same as the
+    ``interaction`` is one of ``'tap'`` or ``'swipe'`` — same as the
     server's echoed type. A single handler can branch on it instead
     of registering separate callbacks per interaction.
+
+    ``chat_type`` is the kind of chat the press happened in (see the
+    ``CHAT_TYPE_*`` constants exported from :mod:`karbo`). ``None`` on
+    servers older than mid-2026 that don't yet echo the field.
     """
 
     chat_id: str
@@ -319,3 +323,4 @@ class ButtonPress:
     user_id: str
     community_id: int
     interaction: str
+    chat_type: Optional[int] = None

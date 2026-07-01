@@ -15,7 +15,18 @@ from .errors import (
     ValidationError,
 )
 from .buttons import Button, Row, buttons_to_dict
-from .models import AvatarFrame, Author, BotInfo, Member, Message, MessageReaction, SentMessage, User
+from .models import (
+    AvatarFrame,
+    Author,
+    BotInfo,
+    Chat,
+    LastMessagePreview,
+    Member,
+    Message,
+    MessageReaction,
+    SentMessage,
+    User,
+)
 
 _DEFAULT_BASE_URL = "https://api.karboai.com"
 
@@ -50,6 +61,25 @@ def _parse_author(data: dict | None) -> Author | None:
         nickname_emoji=data.get("nickname_emoji"),
         avatar_frame=_parse_avatar_frame(data.get("avatar_frame")),
         is_api_bot=bool(data.get("is_api_bot", False)),
+    )
+
+
+def _parse_last_message_preview(data: dict | None) -> LastMessagePreview | None:
+    if not isinstance(data, dict):
+        return None
+    author = data.get("author") if isinstance(data.get("author"), dict) else {}
+    return LastMessagePreview(
+        message_id=data.get("message_id", "") or "",
+        created_time=int(data.get("created_time", 0) or 0),
+        content=data.get("content", "") or "",
+        type=int(data.get("type", 0) or 0),
+        user_id=data.get("user_id", "") or "",
+        has_images=bool(data.get("has_images", False)),
+        audio=data.get("audio"),
+        sticker=data.get("sticker"),
+        video_note=data.get("video_note"),
+        author_nickname=(author or {}).get("nickname", "") or "",
+        author_avatar=(author or {}).get("avatar_url", (author or {}).get("avatar", "")) or "",
     )
 
 
@@ -234,6 +264,7 @@ class KarboBot:
         """Get a specific message from a chat."""
         data = await self._request("GET", f"/bot/chat/{chat_id}/message/{message_id}")
         author = _parse_author(data.get("author"))
+        chat_type_raw = data.get("chat_type")
         return Message(
             message_id=data["message_id"],
             chat_id=data["chat_id"],
@@ -242,6 +273,7 @@ class KarboBot:
             created_time=data["created_time"],
             type=data["type"],
             community_id=int(data.get("community_id", 0) or 0),
+            chat_type=int(chat_type_raw) if chat_type_raw is not None else None,
             reply_message_id=data.get("reply_message_id"),
             author=author,
             audio=data.get("audio"),
@@ -255,6 +287,53 @@ class KarboBot:
             bubble_id=data.get("bubble_id"),
             bubble_version=int(data.get("bubble_version", 0) or 0),
             reactions=_parse_reactions(data.get("reactions")),
+        )
+
+    async def get_chat(self, chat_id: str) -> Chat:
+        """Get full metadata for a chat the bot is in.
+
+        Returns the same payload shape as the app-facing
+        ``GET /chat/{chat_id}`` endpoint: chat kind (``type`` — see
+        ``CHAT_TYPE_*`` constants), title, community, pinned message,
+        member count, last-message preview, and (for DMs) the other
+        party's profile snapshot. Fields the SDK doesn't project onto
+        typed attributes are preserved in ``Chat.raw``.
+
+        Raises ``ForbiddenError`` if the bot is not a member of the
+        requested chat.
+        """
+        data = await self._request("GET", f"/bot/chat/{chat_id}")
+        last = _parse_last_message_preview(data.get("last_message"))
+        return Chat(
+            chat_id=data.get("chat_id", chat_id),
+            type=int(data.get("type", 0) or 0),
+            title=data.get("title", "") or "",
+            community_id=int(data.get("community_id", 0) or 0),
+            chatting_type=int(data.get("chatting_type", 0) or 0),
+            background=data.get("background"),
+            icon=data.get("icon"),
+            chat_description=data.get("chat_description", "") or "",
+            pinned_message=data.get("pinned_message", "") or "",
+            everyone_can_invite=bool(data.get("everyone_can_invite", True)),
+            voice_invite_only=bool(data.get("voice_invite_only", False)),
+            is_voice_active=bool(data.get("is_voice_active", False)),
+            is_cinema_active=bool(data.get("is_cinema_active", False)),
+            is_hidden=int(data.get("is_hidden", 0) or 0),
+            created_time=int(data.get("created_time", 0) or 0),
+            creator_user_id=data.get("creator_user_id", "") or "",
+            creator_nickname=data.get("creator_nickname", "") or "",
+            creator_avatar_url=data.get("creator_avatar_url", "") or "",
+            users_count=int(data.get("users_count", 0) or 0),
+            is_chat_member=bool(data.get("is_chat_member", True)),
+            member_status=data.get("member_status", "joined") or "joined",
+            is_muted_chat=bool(data.get("is_muted_chat", False)),
+            last_readed_message_id=data.get("last_readed_message_id"),
+            helper_ids=list(data.get("helper_ids") or []),
+            other_user_id=data.get("other_user_id", "") or "",
+            other_user_nickname=data.get("other_user_nickname", "") or "",
+            other_user_avatar_url=data.get("other_user_avatar_url", "") or "",
+            last_message=last,
+            raw=dict(data),
         )
 
     # ── Chat members ─────────────────────────────────────────────────────
